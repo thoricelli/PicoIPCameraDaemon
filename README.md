@@ -30,7 +30,7 @@ All endpoints:
 
 ## Building
 
-1. Install the Android NDK, version: r21e (21.4.7075529). 
+1. Install the Android NDK, version: r21e (21.4.7075529).   
 https://developer.android.com/ndk/downloads
 2. Add the root path `ANDROID_NDK_ROOT` to your environment variables.
 3. `git submodule update --recursive --remote`
