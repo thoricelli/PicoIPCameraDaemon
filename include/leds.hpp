@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdio>
 
 // REGISTERS
 
@@ -56,7 +57,7 @@ struct led_settings
     char leftEyeBrightness;
 };
 
-class Led
+class Leds
 {
 public:
     int turnOn(led_settings *settings);

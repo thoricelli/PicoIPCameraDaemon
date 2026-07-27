@@ -5,7 +5,7 @@
 #include <sys/prctl.h>
 #include <dlfcn.h>
 
-#include "libbinder_ndk.hpp"
+#include "libbinder-ndk.hpp"
 
 using StartThreadPoolFn = void (*)();
 

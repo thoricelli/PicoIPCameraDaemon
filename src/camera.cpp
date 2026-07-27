@@ -5,6 +5,11 @@
 #include <media/NdkImageReader.h>
 
 #include "camera.hpp"
+#include "feed.hpp"
+#include "log.hpp"
+
+// TODO.
+static Feed *feed;
 
 static AImageReader *mImageReader = nullptr;
 static ACameraCaptureSession *mCaptureSession = nullptr;
@@ -13,18 +18,27 @@ static AImageReader_ImageListener mImageListener = {
     .context = nullptr,
     .onImageAvailable = [](void *context, AImageReader *reader)
     {
-        AImage *image = nullptr;
-        if (AImageReader_acquireNextImage(reader, &image) == AMEDIA_OK)
-        {
-            int32_t width = 0, height = 0;
-            AImage_getWidth(image, &width);
-            AImage_getHeight(image, &height);
+        AImage *latestImage = nullptr;
+        AImage *currentImage = nullptr;
 
+        while (AImageReader_acquireLatestImage(reader, &currentImage) == AMEDIA_OK)
+        {
+            if (latestImage != nullptr)
+            {
+                AImage_delete(latestImage);
+            }
+            latestImage = currentImage;
+        }
+
+        if (latestImage != nullptr)
+        {
             uint8_t *yData = nullptr;
             int yLen = 0;
-            AImage_getPlaneData(image, 0, &yData, &yLen);
+            AImage_getPlaneData(latestImage, 0, &yData, &yLen);
 
-                        AImage_delete(image);
+            feed->pushImageData(yData);
+
+            AImage_delete(latestImage);
         }
     }};
 static ACameraCaptureSession_stateCallbacks mSessionStateCallbacks = {
@@ -37,6 +51,11 @@ static ACameraDevice_StateCallbacks mCameraStateCallbacks = {
     .onDisconnected = nullptr,
     .onError = nullptr,
 };
+
+Camera::Camera(Feed *f)
+{
+    feed = f;
+}
 
 void Camera::open()
 {

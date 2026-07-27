@@ -2,9 +2,12 @@
 
 #include <camera/NdkCameraCaptureSession.h>
 
+#include "feed.hpp"
+
 class Camera
 {
 public:
+    Camera(Feed *feed);
     void open();
 
 private:

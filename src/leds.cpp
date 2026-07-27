@@ -1,16 +1,15 @@
 #include <cstdio>
 #include <cstdlib>
+#include <chrono>
+#include <thread>
 
-#include "led.hpp"
-
-// I'm not responsible for eye damage if you set this higher!
-#define MAX_BRIGHTNESS 0x40 // in mA.
+#include "leds.hpp"
 
 #define AW21009_DRIVER "/sys/bus/i2c/drivers/aw210xx_led/2-0020/leds/aw210xx_led/"
 #define HWEN_DEVICE_ATTR AW21009_DRIVER "hwen"
 #define REG_DEVICE_ATTR AW21009_DRIVER "reg"
 
-int Led::turnOn(led_settings *settings)
+int Leds::turnOn(led_settings *settings)
 {
     // The GPIO pins control the chip and LED power.
     FILE *hwenFd = std::fopen(HWEN_DEVICE_ATTR, "w");
@@ -31,6 +30,8 @@ int Led::turnOn(led_settings *settings)
 
     std::fclose(hwenFd);
 
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
     // We need to write to the AW21009 registers
     this->regFd = std::fopen(REG_DEVICE_ATTR, "w");
 
@@ -41,13 +42,12 @@ int Led::turnOn(led_settings *settings)
         return EXIT_FAILURE;
     }
 
-    this->writeToRegister(RESET_REG, 0x01);
+    this->writeToRegister(RESET_REG, 0x00);
 
     // Enable chip
-    this->writeToRegister(GCCR_REG, 0x01);
+    this->writeToRegister(GCR_REG, 0x01);
 
-    // Safety: maximum current for all leds. Face has max current of 0x40.
-    this->writeToRegister(GCCR_REG, MAX_BRIGHTNESS);
+    this->writeToRegister(GCCR_REG, 0xFF);
 
     // Disable UVLO detect and UVLO protect.
     this->writeToRegister(UVCR_REG, 0x03);
@@ -75,7 +75,7 @@ int Led::turnOn(led_settings *settings)
     return EXIT_SUCCESS;
 }
 
-int Led::turnOff()
+int Leds::turnOff()
 {
     FILE *hwenFd = std::fopen(HWEN_DEVICE_ATTR, "w");
 
@@ -85,25 +85,22 @@ int Led::turnOff()
         return EXIT_FAILURE;
     }
 
-    int bytesWritten = std::fputs("0", hwenFd);
-    if (bytesWritten < 0)
-    {
-        std::perror("Failed to write to HWEN!");
-
-        return EXIT_FAILURE;
-    }
+    std::fputs("3", hwenFd);
 
     std::fclose(hwenFd);
 
     return EXIT_SUCCESS;
 }
 
-int Led::writeToRegister(char reg, char value)
+int Leds::writeToRegister(char reg, char value)
 {
-    char *command = nullptr;
-    sprintf(command, "%x %x", reg, value);
+    char command[20];
+    sprintf(command, "0x%x 0x%x", reg, value);
 
     int bytes_written = std::fputs(command, regFd);
+
+    std::fflush(regFd);
+    std::rewind(regFd);
 
     if (bytes_written < 0)
         return EXIT_FAILURE;

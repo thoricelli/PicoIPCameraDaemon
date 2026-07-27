@@ -5,9 +5,11 @@
 #include <unistd.h>
 
 #include "camera.hpp"
-#include "libbinder_ndk.hpp"
+#include "mjpeg-server.hpp"
+#include "libbinder-ndk.hpp"
+#include "leds.hpp"
 
-#define IS_A_DAEMON 0
+#define IS_A_DAEMON 1
 
 /**
  * Turns this process into a daemon.
@@ -34,20 +36,32 @@ int main()
 
     if (pid > 0)
     {
-        printf("Daemon started on PID: %d\n", pid);
+        printf("Goodbye su! Daemon started on PID: %d\n", pid);
         return EXIT_SUCCESS;
     }
 #endif
-    printf("Build date: %s %s\n", __DATE__, __TIME__);
-
     // Start a thread pool for listening to events, important!
     LibBinderNdk::ABinderProcess_startThreadPool();
 
     // Set ourselves to a system UUID to keep cameraserver content.
     setuid(1000);
 
-    Camera *camera = new Camera();
+    Feed *feed = new Feed();
+
+    led_settings ledSettings = {
+        .leftEyeBrightness = 0x10,
+        .rightEyeBrightness = 0x10,
+        .faceBrightness = 0x40,
+    };
+
+    Camera *camera = new Camera(feed);
     camera->open();
+
+    Leds *leds = new Leds();
+    leds->turnOn(&ledSettings);
+
+    MJPEGServer *server = new MJPEGServer(feed);
+    server->startServer();
 
     while (true)
     {
