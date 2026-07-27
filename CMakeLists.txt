@@ -51,6 +51,9 @@ add_dependencies(libturbojpeg libjpeg_turbo)
 
 #HTTPLIB
 set(HTTPLIB_USE_OPENSSL_IF_AVAILABLE OFF)
+set(HTTPLIB_USE_ZLIB_IF_AVAILABLE OFF)
+set(HTTPLIB_USE_BROTLI_IF_AVAILABLE OFF)
+set(HTTPLIB_USE_ZSTD_IF_AVAILABLE OFF)
 
 add_subdirectory(third_party/cpp-httplib)
 
@@ -81,7 +84,7 @@ target_include_directories(picoipcamerad PUBLIC
 target_link_libraries(picoipcamerad 
     camera2ndk
     mediandk 
-    android 
+    -landroid 
     log
     libturbojpeg
     httplib::httplib
