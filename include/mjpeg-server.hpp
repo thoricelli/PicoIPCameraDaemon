@@ -7,7 +7,7 @@ class MJPEGServer
 {
 public:
     MJPEGServer(Feed *feed);
-    void startServer();
+    void startServerBlocking();
 
 private:
     bool writeToSink(httplib::DataSink &sink, FrameBuffer jpeg);

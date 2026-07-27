@@ -61,13 +61,7 @@ int main()
     leds->turnOn(&ledSettings);
 
     MJPEGServer *server = new MJPEGServer(feed);
-    server->startServer();
-
-    while (true)
-    {
-        // Keep the main thread busy.
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
+    server->startServerBlocking();
 
     return EXIT_SUCCESS;
 }
