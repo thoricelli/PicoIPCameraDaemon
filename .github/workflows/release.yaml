@@ -4,6 +4,11 @@ permissions:
 on:
   push:
     tags: ["v*"]
+    paths:
+      - "src/**"
+      - "include/**"
+      - "CMakeLists.txt"
+      - "Makefile"
 
 jobs:
   release:
