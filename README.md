@@ -22,6 +22,7 @@ adb shell ./picoipcamerad
 `inet 192.168.0.xx/24 brd 192.168.0.255 scope global wlan0`
 5. Go to: http://192.168.0.xx:9100/face
 6. What a beatiful face!
+7. To kill the daemon: `pkill picoipcamerad`
 
 All endpoints:
 - http://192.168.0.xx:9100/face
@@ -35,3 +36,10 @@ https://developer.android.com/ndk/downloads
 2. Add the root path `ANDROID_NDK_ROOT` to your environment variables.
 3. `git submodule update --recursive --remote`
 3. Run `make`.
+
+## TODO
+More features to come.
+- Dashboard via an API to manage daemon.
+- Changing the LED brightness individually.
+- Changing camera parameters (ISO, EV, shutterspeed).
+- General code cleanup, tiny refactoring, and proper testing.
