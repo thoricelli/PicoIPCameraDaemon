@@ -61,18 +61,8 @@ void Camera::open()
 {
     ACameraManager *cameraManager = ACameraManager_create();
 
-    printf("Opening the camera...\n");
-
     ACameraDevice *cameraDevice = nullptr;
     camera_status_t cameraStatus = ACameraManager_openCamera(cameraManager, "5", &mCameraStateCallbacks, &cameraDevice);
-
-    if (cameraStatus != camera_status_t::ACAMERA_OK)
-    {
-        printf("Wasn't allowed to access cameraserver_service :(");
-        return;
-    }
-
-    printf("Camera has opened! Huzzah!\n");
 
     media_status_t mstatus = AImageReader_new(400, 1600, AIMAGE_FORMAT_RAW_PRIVATE, 2, &mImageReader);
 
@@ -98,12 +88,6 @@ void Camera::open()
     ACaptureRequest_addTarget(mCaptureRequest, imageReaderTarget);
 
     cameraStatus = ACameraDevice_createCaptureSession(cameraDevice, outputContainer, &mSessionStateCallbacks, &mCaptureSession);
-
-    if (cameraStatus != ACAMERA_OK)
-    {
-        printf("Failed to create capture session. Error: %d\n", cameraStatus);
-        return;
-    }
 
     camera_status_t reqStatus = ACameraCaptureSession_setRepeatingRequest(mCaptureSession, nullptr, 1, &mCaptureRequest, nullptr);
 }

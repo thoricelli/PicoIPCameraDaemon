@@ -63,5 +63,4 @@ void MJPEGServer::startServerBlocking()
             return writeToSink(sink, jpeg); }); });
 
     svr.listen("0.0.0.0", 9100);
-    printf("Listening!");
 }
