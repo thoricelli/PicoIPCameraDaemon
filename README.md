@@ -22,7 +22,7 @@ adb shell ./picoipcamerad
 `inet 192.168.0.xx/24 brd 192.168.0.255 scope global wlan0`
 5. Go to: http://192.168.0.xx:9100/face
 6. What a beatiful face!
-7. To kill the daemon: `pkill picoipcamerad`
+7. To kill the daemon: `pkill -f picoipcamerad`
 
 All endpoints:
 - http://192.168.0.xx:9100/face
