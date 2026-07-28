@@ -29,6 +29,14 @@ jobs:
       - name: Build with Make
         run: make
 
+      - name: ZIP Magisk module
+        run: |
+          mkdir -p magisk/system/bin
+          cp build/arm64-v8a/picoipcamerad magisk/system/bin
+          cd magisk
+          zip -r ../picoipcamerad-magisk-module.zip . *
+          cd ..
+
       - name: Release
         shell: bash
         env:
@@ -37,6 +45,7 @@ jobs:
         run: |
           gh release create "$tag" \
           "build/arm64-v8a/picoipcamerad" \
+          "picoipcamerad-magisk-module.zip" \
           --repo="$GITHUB_REPOSITORY" \
           --title="${tag#v}" \
           --generate-notes
