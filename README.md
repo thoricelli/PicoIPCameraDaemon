@@ -15,7 +15,7 @@ If you still want `pxreyeservice` to work, you will have to use another workarou
 ```shell
 adb push picoipcamerad /data/local/tmp
 adb shell ip addr show wlan0 | grep "inet "
-adb shell ./picoipcamerad
+adb shell ./data/local/tmp/picoipcamerad
 ```
 3. The daemon will now be running on port 9100.
 4. You should see, in the previous output the following:  
