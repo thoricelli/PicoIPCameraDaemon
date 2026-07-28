@@ -4,12 +4,10 @@
 #include <android/log.h>
 #include <unistd.h>
 
-#include "camera.hpp"
-#include "mjpeg-server.hpp"
 #include "libbinder-ndk.hpp"
-#include "leds.hpp"
+#include "mjpeg-server.hpp"
 
-#define IS_A_DAEMON 1
+#define IS_A_DAEMON 0
 
 /**
  * Turns this process into a daemon.
@@ -46,21 +44,7 @@ int main()
     // Set ourselves to a system UUID to keep cameraserver content.
     setuid(1000);
 
-    Feed *feed = new Feed();
-
-    led_settings ledSettings = {
-        .leftEyeBrightness = 0x10,
-        .rightEyeBrightness = 0x10,
-        .faceBrightness = 0x40,
-    };
-
-    Camera *camera = new Camera(feed);
-    camera->open();
-
-    Leds *leds = new Leds();
-    leds->turnOn(&ledSettings);
-
-    MJPEGServer *server = new MJPEGServer(feed);
+    MJPEGServer *server = new MJPEGServer();
     server->startServerBlocking();
 
     return EXIT_SUCCESS;

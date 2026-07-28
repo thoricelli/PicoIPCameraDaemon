@@ -1,8 +1,4 @@
 #include <iostream>
-#include <camera/NdkCameraManager.h>
-#include <camera/NdkCameraDevice.h>
-#include <camera/NdkCaptureRequest.h>
-#include <media/NdkImageReader.h>
 
 #include "camera.hpp"
 #include "feed.hpp"
@@ -11,9 +7,6 @@
 // TODO.
 static Feed *feed;
 
-static AImageReader *mImageReader = nullptr;
-static ACameraCaptureSession *mCaptureSession = nullptr;
-static ACaptureRequest *mCaptureRequest = nullptr;
 static AImageReader_ImageListener mImageListener = {
     .context = nullptr,
     .onImageAvailable = [](void *context, AImageReader *reader)
@@ -61,15 +54,14 @@ void Camera::open()
 {
     ACameraManager *cameraManager = ACameraManager_create();
 
-    ACameraDevice *cameraDevice = nullptr;
-    camera_status_t cameraStatus = ACameraManager_openCamera(cameraManager, "5", &mCameraStateCallbacks, &cameraDevice);
+    camera_status_t cameraStatus = ACameraManager_openCamera(cameraManager, "5", &mCameraStateCallbacks, &this->activeCamera);
 
-    media_status_t mstatus = AImageReader_new(400, 1600, AIMAGE_FORMAT_RAW_PRIVATE, 2, &mImageReader);
+    media_status_t mstatus = AImageReader_new(400, 1600, AIMAGE_FORMAT_RAW_PRIVATE, 2, &this->imageReader);
 
-    mstatus = AImageReader_setImageListener(mImageReader, &mImageListener);
+    mstatus = AImageReader_setImageListener(this->imageReader, &mImageListener);
 
     ANativeWindow *nativeWindow = nullptr;
-    mstatus = AImageReader_getWindow(mImageReader, &nativeWindow);
+    mstatus = AImageReader_getWindow(this->imageReader, &nativeWindow);
 
     ACaptureSessionOutputContainer *outputContainer = nullptr;
     ACaptureSessionOutputContainer_create(&outputContainer);
@@ -78,16 +70,24 @@ void Camera::open()
     ACaptureSessionOutput_create(nativeWindow, &sessionOutput);
     ACaptureSessionOutputContainer_add(outputContainer, sessionOutput);
 
-    camera_status_t captureStatus = ACameraDevice_createCaptureRequest(cameraDevice, TEMPLATE_RECORD, &mCaptureRequest);
+    camera_status_t captureStatus = ACameraDevice_createCaptureRequest(this->activeCamera, TEMPLATE_RECORD, &this->captureRequest);
 
     int32_t sensitivity = 200;
-    ACaptureRequest_setEntry_i32(mCaptureRequest, ACAMERA_SENSOR_SENSITIVITY, 1, &sensitivity);
+    ACaptureRequest_setEntry_i32(this->captureRequest, ACAMERA_SENSOR_SENSITIVITY, 1, &sensitivity);
 
     ACameraOutputTarget *imageReaderTarget;
     ACameraOutputTarget_create(nativeWindow, &imageReaderTarget);
-    ACaptureRequest_addTarget(mCaptureRequest, imageReaderTarget);
+    ACaptureRequest_addTarget(this->captureRequest, imageReaderTarget);
 
-    cameraStatus = ACameraDevice_createCaptureSession(cameraDevice, outputContainer, &mSessionStateCallbacks, &mCaptureSession);
+    cameraStatus = ACameraDevice_createCaptureSession(this->activeCamera, outputContainer, &mSessionStateCallbacks, &this->captureSession);
 
-    camera_status_t reqStatus = ACameraCaptureSession_setRepeatingRequest(mCaptureSession, nullptr, 1, &mCaptureRequest, nullptr);
+    camera_status_t reqStatus = ACameraCaptureSession_setRepeatingRequest(this->captureSession, nullptr, 1, &this->captureRequest, nullptr);
+
+    this->isOpened = true;
+}
+
+void Camera::close()
+{
+    ACameraDevice_close(this->activeCamera);
+    this->isOpened = false;
 }

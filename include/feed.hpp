@@ -29,6 +29,10 @@ public:
     FrameBuffer waitForRightEyeBuffer(unsigned long *lastFrame);
     FrameBuffer waitForFaceBuffer(unsigned long *lastFrame);
 
+    void setLeftEyeBufferState(bool state);
+    void setRightEyeBufferState(bool state);
+    void setFaceBufferState(bool state);
+
     std::mutex leftEyeMutex;
     std::condition_variable leftEyeCv;
 
@@ -38,13 +42,19 @@ public:
     std::mutex faceMutex;
     std::condition_variable faceCv;
 
-    unsigned long frameNumber = 0;
+    unsigned long leftEyeFrameNumber = 0;
+    unsigned long rightEyeFrameNumber = 0;
+    unsigned long faceFrameNumber = 0;
 
 private:
     // Feeds
     FrameBuffer leftEyeJpegBuffer;
     FrameBuffer rightEyeJpegBuffer;
     FrameBuffer faceJpegBuffer;
+
+    bool leftEyeBufferState = false;
+    bool rightEyeBufferState = false;
+    bool faceBufferState = false;
 
     std::vector<unsigned char> cropImage(logicalCameraId cameraId, unsigned char *pixels);
 };
