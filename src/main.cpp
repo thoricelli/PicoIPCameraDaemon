@@ -7,7 +7,7 @@
 #include "libbinder-ndk.hpp"
 #include "mjpeg-server.hpp"
 
-#define IS_A_DAEMON 0
+#define IS_A_DAEMON 1
 
 /**
  * Turns this process into a daemon.
