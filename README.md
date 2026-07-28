@@ -17,7 +17,7 @@ adb push picoipcamerad /data/local/tmp
 adb shell ip addr show wlan0 | grep "inet "
 adb shell ./picoipcamerad
 ```
-3. The daemon will now be running on port 8080.
+3. The daemon will now be running on port 9100.
 4. You should see, in the previous output the following:  
 `inet 192.168.0.xx/24 brd 192.168.0.255 scope global wlan0`
 5. Go to: http://192.168.0.xx:9100/face
