@@ -18,10 +18,6 @@ public:
     bool isOpened = false;
 
 private:
-    static void cameraOpened(void *context, ACameraDevice *device);
-    static void cameraDisconnected(void *context, ACameraDevice *device);
-    static void cameraError(void *context, ACameraDevice *device, int error);
-
     ACameraDevice *activeCamera = nullptr;
     AImageReader *imageReader = nullptr;
 
@@ -29,4 +25,10 @@ private:
     ACaptureRequest *captureRequest = nullptr;
 
     AImageReader_ImageListener *imageListener = nullptr;
+
+    // Callbacks
+    ACameraDevice_StateCallbacks cameraStateCallbacks;
+    ACameraCaptureSession_stateCallbacks sessionStateCallbacks;
+
+    void onDisconnected(ACameraDevice *device);
 };

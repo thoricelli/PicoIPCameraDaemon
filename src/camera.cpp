@@ -34,16 +34,6 @@ static AImageReader_ImageListener mImageListener = {
             AImage_delete(latestImage);
         }
     }};
-static ACameraCaptureSession_stateCallbacks mSessionStateCallbacks = {
-    .context = nullptr,
-    .onClosed = nullptr,
-    .onReady = nullptr,
-    .onActive = nullptr};
-static ACameraDevice_StateCallbacks mCameraStateCallbacks = {
-    .context = nullptr,
-    .onDisconnected = nullptr,
-    .onError = nullptr,
-};
 
 Camera::Camera(Feed *f)
 {
@@ -54,7 +44,17 @@ void Camera::open()
 {
     ACameraManager *cameraManager = ACameraManager_create();
 
-    camera_status_t cameraStatus = ACameraManager_openCamera(cameraManager, "5", &mCameraStateCallbacks, &this->activeCamera);
+    this->cameraStateCallbacks = {
+        .context = this,
+        .onDisconnected = [](void *context, ACameraDevice *device)
+        {
+            auto *self = static_cast<Camera *>(context);
+            self->onDisconnected(device);
+        },
+        .onError = nullptr,
+    };
+
+    camera_status_t cameraStatus = ACameraManager_openCamera(cameraManager, "5", &cameraStateCallbacks, &this->activeCamera);
 
     media_status_t mstatus = AImageReader_new(400, 1600, AIMAGE_FORMAT_RAW_PRIVATE, 2, &this->imageReader);
 
@@ -72,18 +72,29 @@ void Camera::open()
 
     camera_status_t captureStatus = ACameraDevice_createCaptureRequest(this->activeCamera, TEMPLATE_RECORD, &this->captureRequest);
 
-    int32_t sensitivity = 200;
+    int32_t sensitivity = 300;
     ACaptureRequest_setEntry_i32(this->captureRequest, ACAMERA_SENSOR_SENSITIVITY, 1, &sensitivity);
 
     ACameraOutputTarget *imageReaderTarget;
     ACameraOutputTarget_create(nativeWindow, &imageReaderTarget);
     ACaptureRequest_addTarget(this->captureRequest, imageReaderTarget);
 
-    cameraStatus = ACameraDevice_createCaptureSession(this->activeCamera, outputContainer, &mSessionStateCallbacks, &this->captureSession);
+    this->sessionStateCallbacks = {
+        .context = nullptr,
+        .onClosed = nullptr,
+        .onReady = nullptr,
+        .onActive = nullptr};
+
+    cameraStatus = ACameraDevice_createCaptureSession(this->activeCamera, outputContainer, &this->sessionStateCallbacks, &this->captureSession);
 
     camera_status_t reqStatus = ACameraCaptureSession_setRepeatingRequest(this->captureSession, nullptr, 1, &this->captureRequest, nullptr);
 
     this->isOpened = true;
+}
+
+void Camera::onDisconnected(ACameraDevice *device)
+{
+    this->isOpened = false;
 }
 
 void Camera::close()

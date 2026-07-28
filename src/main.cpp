@@ -41,9 +41,6 @@ int main()
     // Start a thread pool for listening to events, important!
     LibBinderNdk::ABinderProcess_startThreadPool();
 
-    // Set ourselves to a system UUID to keep cameraserver content.
-    setuid(1000);
-
     MJPEGServer *server = new MJPEGServer();
     server->startServerBlocking();
 
