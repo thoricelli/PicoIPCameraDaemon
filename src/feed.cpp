@@ -72,7 +72,7 @@ std::vector<unsigned char> Feed::cropImage(logicalCameraId cameraId, unsigned ch
         &buffer,
         &size,
         TJSAMP_GRAY,
-        95,
+        75,
         TJFLAG_FASTDCT);
 
     jpeg.assign(buffer, buffer + size);

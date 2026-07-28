@@ -90,6 +90,9 @@ void Camera::open()
 
     camera_status_t captureStatus = ACameraDevice_createCaptureRequest(cameraDevice, TEMPLATE_RECORD, &mCaptureRequest);
 
+    int32_t sensitivity = 200;
+    ACaptureRequest_setEntry_i32(mCaptureRequest, ACAMERA_SENSOR_SENSITIVITY, 1, &sensitivity);
+
     ACameraOutputTarget *imageReaderTarget;
     ACameraOutputTarget_create(nativeWindow, &imageReaderTarget);
     ACaptureRequest_addTarget(mCaptureRequest, imageReaderTarget);
