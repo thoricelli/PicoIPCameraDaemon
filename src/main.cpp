@@ -3,11 +3,13 @@
 #include <thread>
 #include <android/log.h>
 #include <unistd.h>
+#include <sys/resource.h>
 
 #include "libbinder-ndk.hpp"
 #include "mjpeg-server.hpp"
+#include "camera-shared-memory.hpp"
 
-#define IS_A_DAEMON 1
+#define IS_A_DAEMON 0
 
 /**
  * Turns this process into a daemon.
@@ -41,8 +43,16 @@ int main()
     // Start a thread pool for listening to events, important!
     LibBinderNdk::ABinderProcess_startThreadPool();
 
-    MJPEGServer *server = new MJPEGServer();
-    server->startServerBlocking();
+    /*MJPEGServer *server = new MJPEGServer();
+    server->startServerBlocking();*/
+
+    ICamera *cameraSharedMemory = new CameraSharedMemory(new Feed());
+    cameraSharedMemory->open();
+
+    while (true)
+    {
+        sleep(1000);
+    }
 
     return EXIT_SUCCESS;
 }

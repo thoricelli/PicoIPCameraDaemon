@@ -7,17 +7,27 @@
 
 #include "libbinder-ndk.hpp"
 
-using StartThreadPoolFn = void (*)();
+#define LIBRARY "libbinder_ndk.so"
+
+StartThreadPool LibBinderNdk::aBinderProcess_startThreadPool = nullptr;
 
 void LibBinderNdk::ABinderProcess_startThreadPool()
 {
-    void *handle = dlopen("libbinder_ndk.so", RTLD_NOW);
+    if (LibBinderNdk::aBinderProcess_startThreadPool)
+        LibBinderNdk::aBinderProcess_startThreadPool();
+
+    void *handle = dlopen(LIBRARY, RTLD_NOW);
     if (!handle)
     {
         return;
     }
 
-    auto startThreadPool = reinterpret_cast<StartThreadPoolFn>(dlsym(handle, "ABinderProcess_startThreadPool"));
+    StartThreadPool startThreadPool = reinterpret_cast<StartThreadPool>(dlsym(handle, "ABinderProcess_startThreadPool"));
     if (startThreadPool)
+    {
+        LibBinderNdk::aBinderProcess_startThreadPool = startThreadPool;
         startThreadPool();
+    }
+
+    dlclose(handle);
 }

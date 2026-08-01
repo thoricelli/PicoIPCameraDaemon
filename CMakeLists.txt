@@ -1,4 +1,6 @@
 cmake_minimum_required(VERSION 3.22.1)
+set(CMAKE_CXX_STANDARD 17)
+
 project(PicoIPCameraDaemon CXX)
 
 include(ExternalProject)
@@ -7,7 +9,7 @@ include(embed.cmake)
 #JPEG_TURBO
 set(JPEG_TURBO_SOURCE     "${CMAKE_CURRENT_SOURCE_DIR}/third_party/libjpeg-turbo")
 
-set(JPEG_TURBO_PREFIX     "${CMAKE_BINARY_DIR}/libjpeg-turbo")
+set(JPEG_TURBO_PREFIX     "${CMAKE_BINARY_DIR}/third_party/libjpeg-turbo")
 set(JPEG_TURBO_INSTALL_DIR "${JPEG_TURBO_PREFIX}/install")
 
 ExternalProject_Add(libjpeg_turbo
@@ -68,15 +70,16 @@ set(SOURCES
     src/libbinder-ndk.cpp
     src/mjpeg-server.cpp
     src/feed.cpp
+    src/camera-shared-memory.cpp
+    src/pico/eye-tracking-service.cpp
 )
 
 add_executable(picoipcamerad ${SOURCES})
 
-target_compile_options(picoipcamerad PUBLIC -O3 -ffunction-sections -fdata-sections -flto)
+target_embed_files(picoipcamerad FILES ${CMAKE_CURRENT_SOURCE_DIR}/html/index.html)
+
+target_compile_options(picoipcamerad PUBLIC -Og -ffunction-sections -fdata-sections)
 target_link_options(picoipcamerad PUBLIC 
-    -flto
-    -Wl,--gc-sections
-    -Wl,--strip-all
 )
 
 target_include_directories(picoipcamerad PUBLIC 
@@ -90,6 +93,7 @@ target_link_libraries(picoipcamerad
     camera2ndk
     mediandk 
     -landroid 
+    binder_ndk
     log
     libturbojpeg
     httplib::httplib
