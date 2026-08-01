@@ -14,6 +14,11 @@ public:
     void startServerBlocking();
 
 private:
+    // Endpoints
+    void leftEyeEndpoint(const httplib::Request &req, httplib::Response &res);
+    void rightEyeEndpoint(const httplib::Request &req, httplib::Response &res);
+    void faceEndpoint(const httplib::Request &req, httplib::Response &res);
+
     bool writeToSink(httplib::DataSink &sink, FrameBuffer jpeg);
     void ensureCameraOpen();
     void checkCameraShouldStayOpen();
@@ -30,7 +35,7 @@ private:
     std::thread timerThread;
 
     Feed *feed;
-    Camera *camera;
+    ICamera *camera;
     Leds *leds;
 
     int leftEyeListeners = 0;

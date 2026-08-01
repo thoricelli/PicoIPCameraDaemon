@@ -74,7 +74,7 @@ void Feed::pushImageData(unsigned char *pixels)
     }
 }
 
-std::vector<unsigned char> Feed::cropImage(logicalCameraId cameraId, unsigned char *pixels)
+std::vector<unsigned char> Feed::cropImage(LogicalCameraId cameraId, unsigned char *pixels)
 {
     std::vector<uint8_t> jpeg;
 

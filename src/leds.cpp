@@ -9,7 +9,7 @@
 #define HWEN_DEVICE_ATTR AW21009_DRIVER "hwen"
 #define REG_DEVICE_ATTR AW21009_DRIVER "reg"
 
-int Leds::turnOn(led_settings *settings)
+int Leds::turnOn(LedSettings *settings)
 {
     // The GPIO pins control the chip and LED power.
     FILE *hwenFd = std::fopen(HWEN_DEVICE_ATTR, "w");
@@ -90,6 +90,17 @@ int Leds::turnOff()
     std::fclose(hwenFd);
 
     return EXIT_SUCCESS;
+}
+
+void Leds::setLedBrightness(LedIndex led, unsigned int brightness)
+{
+    if ((led == LED_LEFT_EYE || led == LED_RIGHT_EYE) && brightness > MAXIMUM_EYE_BRIGHTNESS)
+        brightness = MAXIMUM_EYE_BRIGHTNESS;
+
+    if (led == FACE_LED_ID && brightness > MAXIMUM_FACE_BRIGHTNESS)
+        brightness = MAXIMUM_FACE_BRIGHTNESS;
+
+    writeToRegister(SR_START + (led * 3) + 2, brightness);
 }
 
 int Leds::writeToRegister(char reg, char value)

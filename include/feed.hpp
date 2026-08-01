@@ -6,7 +6,7 @@
 
 using FrameBuffer = std::shared_ptr<const std::vector<unsigned char>>;
 
-enum logicalCameraId
+enum LogicalCameraId
 {
     LEFT_EYE,
     RIGHT_EYE,
@@ -56,5 +56,5 @@ private:
     bool rightEyeBufferState = false;
     bool faceBufferState = false;
 
-    std::vector<unsigned char> cropImage(logicalCameraId cameraId, unsigned char *pixels);
+    std::vector<unsigned char> cropImage(LogicalCameraId cameraId, unsigned char *pixels);
 };

@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.22.1)
 project(PicoIPCameraDaemon CXX)
 
 include(ExternalProject)
+include(embed.cmake)
 
 #JPEG_TURBO
 set(JPEG_TURBO_SOURCE     "${CMAKE_CURRENT_SOURCE_DIR}/third_party/libjpeg-turbo")
@@ -57,6 +58,9 @@ set(HTTPLIB_USE_ZSTD_IF_AVAILABLE OFF)
 
 add_subdirectory(third_party/cpp-httplib)
 
+#nlohmann/json
+add_subdirectory(third_party/json)
+
 set(SOURCES
     src/main.cpp
     src/leds.cpp
@@ -80,6 +84,7 @@ target_include_directories(picoipcamerad PUBLIC
 
     ${JPEG_TURBO_SOURCE}/src
     third_party/cpp-httplib
+    third_party/json/single_include/
 )
 target_link_libraries(picoipcamerad 
     camera2ndk
