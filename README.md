@@ -39,7 +39,8 @@ https://developer.android.com/ndk/downloads
 git submodule init
 git submodule update --recursive --remote
 ```
-4. Run `make`.
+4. Install `make`, `cmake` and `ninja`
+5. Run `make`.
 
 ## TODO
 More features to come.

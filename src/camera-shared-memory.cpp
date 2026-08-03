@@ -8,7 +8,7 @@ CameraSharedMemory::CameraSharedMemory(Feed *feed)
 
 bool CameraSharedMemory::open()
 {
-    int fd = 0;
+    int fd = -2;
     int status = EyeTrackingService::GetCameraFrameSharedMemory(5, &fd);
 
     printf("Got status: %d, got fd: %d", status, fd);

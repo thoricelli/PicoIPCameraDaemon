@@ -17,6 +17,8 @@ ExternalProject_Add(libjpeg_turbo
     PREFIX            "${JPEG_TURBO_PREFIX}"
     BINARY_DIR        "${JPEG_TURBO_PREFIX}/src/libjpeg_turbo_project"
 
+    BUILD_BYPRODUCTS  "${JPEG_TURBO_INSTALL_DIR}/lib/libturbojpeg.a"
+
     CMAKE_ARGS
         -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
         -DANDROID_TOOLCHAIN=${TOOLCHAIN}
