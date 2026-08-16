@@ -56,11 +56,12 @@ void CameraSharedMemory::PollSharedMemory()
     {
         void *cameraFrameBuffer = this->dataBuffer->GetLatest();
 
-        unsigned char *cameraFrame = static_cast<unsigned char *>(cameraFrameBuffer) + 151; // 151 bytes are data, which I have yet to figure out what it is.
+        if (cameraFrameBuffer != nullptr)
+        {
+            unsigned char *cameraFrame = static_cast<unsigned char *>(cameraFrameBuffer) + 151; // 151 bytes are data, which I have yet to figure out what it is.
 
-        if (cameraFrame != nullptr)
             this->feed->pushImageData(cameraFrame);
-
+        }
         std::this_thread::sleep_for(std::chrono::milliseconds(20));
     }
 }
