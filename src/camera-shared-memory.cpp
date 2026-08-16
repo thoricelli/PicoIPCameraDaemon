@@ -54,8 +54,9 @@ void CameraSharedMemory::PollSharedMemory()
 {
     while (this->cameraOpen.load())
     {
-        unsigned char *cameraFrame = static_cast<unsigned char *>(this->dataBuffer->GetLatest());
-        cameraFrame += 151; // 151 bytes are data, which I have yet to figure out what it is.
+        void *cameraFrameBuffer = this->dataBuffer->GetLatest();
+
+        unsigned char *cameraFrame = static_cast<unsigned char *>(cameraFrameBuffer) + 151; // 151 bytes are data, which I have yet to figure out what it is.
 
         if (cameraFrame != nullptr)
             this->feed->pushImageData(cameraFrame);

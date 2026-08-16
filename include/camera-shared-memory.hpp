@@ -19,7 +19,7 @@ private:
     void PollSharedMemory();
 
     Feed *feed;
-    DataBuffer *dataBuffer;
+    DataBuffer *dataBuffer = nullptr;
 
     std::atomic<bool> cameraOpen = {false};
     std::thread worker;
