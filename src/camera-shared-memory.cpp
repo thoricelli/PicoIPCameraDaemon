@@ -13,20 +13,24 @@ bool CameraSharedMemory::openCamera()
 {
     void *cameraBuffer = nullptr;
 
-    status_t algorithmStatus = PxrEyeTrackingService::StartAlgorithm(5, EYE_TRACKING_ON | FACE_TRACKING_ON, 1000);
+    // I'd like to only open the camera, and not start the algorithm at all, but that's not really possible for a few reasons:
+    // 1. I can *open* the camera via the StartPreview or OpenCamera, but when I close it the service will crash if an app is using the FT/ET.
+    // 2. Using this, the camera will close automatically if no processes are using it.
+    status_t algorithmStatus = PxrEyeTrackingService::StartAlgorithm(5, EYE_TRACKING_ON, 1000);
 
     if (algorithmStatus != OK)
         return false;
 
-    if (this->dataBuffer == nullptr)
-    {
-        status_t sharedMemoryStatus = PxrEyeTrackingService::GetCameraFrameSharedMemory(5, &cameraBuffer);
+    if (this->dataBuffer != nullptr)
+        this->dataBuffer->Close();
 
-        if (sharedMemoryStatus != OK)
-            return false;
+    int fd;
+    status_t sharedMemoryStatus = PxrEyeTrackingService::GetCameraFrameSharedMemory(5, &fd, &cameraBuffer);
 
-        this->dataBuffer = new DataBuffer(cameraBuffer);
-    }
+    if (sharedMemoryStatus != OK)
+        return false;
+
+    this->dataBuffer = new DataBuffer(cameraBuffer, fd);
     this->cameraOpen.store(true);
 
     // Spin up a new thread that will start sending data, and dies after it receives a signal.
@@ -42,7 +46,10 @@ bool CameraSharedMemory::closeCamera()
     if (this->worker.joinable())
         this->worker.join();
 
-    return PxrEyeTrackingService::StopAlgorithm(5, EYE_TRACKING_ON | FACE_TRACKING_ON) == OK;
+    this->dataBuffer->Close();
+    this->dataBuffer = nullptr;
+
+    return PxrEyeTrackingService::StopAlgorithm(5, EYE_TRACKING_ON) == OK;
 }
 
 bool CameraSharedMemory::isOpen()

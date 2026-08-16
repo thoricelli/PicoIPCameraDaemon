@@ -6,7 +6,7 @@
 
 #include "pvr/pxr-eye-tracking-service.hpp"
 
-status_t PxrEyeTrackingService::GetCameraFrameSharedMemory(int camera, void **memory)
+status_t PxrEyeTrackingService::GetCameraFrameSharedMemory(int camera, int *fd, void **memory)
 {
     sp<IServiceManager> sm = defaultServiceManager();
     sp<IBinder> binder = sm->getService(String16(SERVICE));
@@ -50,12 +50,15 @@ status_t PxrEyeTrackingService::GetCameraFrameSharedMemory(int camera, void **me
     if (memorySize <= 0)
         return FAILED_TRANSACTION;
 
+    int sharedMemoryFd = uniqueFd.get();
+    *fd = sharedMemoryFd;
+
     void *sharedMemory = mmap(
         nullptr,
         memorySize,
         PROT_READ,
         MAP_SHARED,
-        uniqueFd.get(),
+        sharedMemoryFd,
         0);
 
     if (sharedMemory == MAP_FAILED)

@@ -36,6 +36,7 @@ private:
 
     Feed *feed;
     ICamera *camera;
+    std::atomic<bool> isOpening{false};
 
     int leftEyeListeners = 0;
     int rightEyeListeners = 0;

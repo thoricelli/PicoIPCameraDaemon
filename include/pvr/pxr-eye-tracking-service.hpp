@@ -49,7 +49,7 @@ enum AlgorithmParameters
 class PxrEyeTrackingService
 {
 public:
-    static status_t GetCameraFrameSharedMemory(int camera, void **memory);
+    static status_t GetCameraFrameSharedMemory(int camera, int *fd, void **memory);
     static status_t StartAlgorithm(int camera, int parameters, int timeoutMs);
     static status_t StopAlgorithm(int camera, int parameters);
 };

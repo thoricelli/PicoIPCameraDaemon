@@ -127,12 +127,19 @@ void MJPEGServer::faceEndpoint(const httplib::Request &req, httplib::Response &r
 
 void MJPEGServer::ensureCameraOpen()
 {
+    if (this->isOpening.exchange(true))
+    {
+        return;
+    }
+
     this->cancelCameraCloseTimer();
 
     if (this->camera->isOpen())
         return;
 
     this->camera->openCamera();
+
+    this->isOpening.store(false);
 }
 
 void MJPEGServer::checkCameraShouldStayOpen()
@@ -152,6 +159,7 @@ void MJPEGServer::closeTimerLoop()
             if (std::chrono::steady_clock::now() >= this->triggerStart)
             {
                 this->timerActive = false;
+                this->isOpening.store(false);
                 this->camera->closeCamera();
             }
         }

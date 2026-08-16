@@ -42,12 +42,6 @@ Camera::Camera(Feed *f)
 
 bool Camera::openCamera()
 {
-    // This is done to prevent race conditions.
-    if (this->opening.exchange(true))
-    {
-        return false;
-    }
-
     if (this->isOpened.load())
     {
         return false;
@@ -99,7 +93,6 @@ bool Camera::openCamera()
 
     camera_status_t reqStatus = ACameraCaptureSession_setRepeatingRequest(this->captureSession, nullptr, 1, &this->captureRequest, nullptr);
 
-    this->opening.store(false);
     this->isOpened.store(true);
 
     return true;
@@ -112,7 +105,6 @@ void Camera::setISO(int ISO)
 
 void Camera::onDisconnected(ACameraDevice *device)
 {
-    this->opening.store(false);
     this->isOpened.store(false);
 }
 
@@ -144,7 +136,6 @@ bool Camera::closeCamera()
         this->imageReader = nullptr;
     }
 
-    this->opening.store(false);
     this->isOpened.store(false);
 
     return true;
