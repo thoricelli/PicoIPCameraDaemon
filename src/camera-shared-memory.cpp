@@ -18,15 +18,18 @@ bool CameraSharedMemory::openCamera()
     if (algorithmStatus != OK)
         return false;
 
-    status_t sharedMemoryStatus = PxrEyeTrackingService::GetCameraFrameSharedMemory(5, &cameraBuffer);
+    if (this->dataBuffer == nullptr)
+    {
+        status_t sharedMemoryStatus = PxrEyeTrackingService::GetCameraFrameSharedMemory(5, &cameraBuffer);
 
-    if (sharedMemoryStatus != OK)
-        return false;
+        if (sharedMemoryStatus != OK)
+            return false;
 
-    // Spin up a new thread that will start sending data, and dies after it receives a signal.
-    this->dataBuffer = new DataBuffer(cameraBuffer);
+        this->dataBuffer = new DataBuffer(cameraBuffer);
+    }
     this->cameraOpen.store(true);
 
+    // Spin up a new thread that will start sending data, and dies after it receives a signal.
     this->worker = std::thread(&CameraSharedMemory::PollSharedMemory, this);
 
     return true;
