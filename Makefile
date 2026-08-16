@@ -13,9 +13,14 @@ config:
 	@cmake -G "Ninja" -S . -B $(BUILD_DIR) -DCMAKE_TOOLCHAIN_FILE=$(NDK_PATH)/build/cmake/android.toolchain.cmake -DANDROID_ABI=$(ABI) -DANDROID_PLATFORM=android-$(API_LEVEL) -DCMAKE_BUILD_TYPE=Release
 
 build: typescript
-	@echo "Building binary..."
-	@cmake --build $(BUILD_DIR) --target clean
-	@cmake --build $(BUILD_DIR)
+	@echo "Building binary."
+	@cmake -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=Release
+	@cmake --build $(BUILD_DIR) --clean-first
+
+debug: config typescript
+	@echo "Building debug binary."
+	@cmake -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=Debug
+	@cmake --build $(BUILD_DIR) --clean-first
 
 typescript:
 	npx -y esbuild html/script.ts --bundle --outfile=html/dist/script.js

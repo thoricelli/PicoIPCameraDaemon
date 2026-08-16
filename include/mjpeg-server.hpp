@@ -4,13 +4,13 @@
 
 #include "httplib.h"
 #include "feed.hpp"
-#include "camera.hpp"
+#include "interfaces/ICamera.hpp"
 #include "leds.hpp"
 
 class MJPEGServer
 {
 public:
-    MJPEGServer();
+    MJPEGServer(ICamera *camera, Feed *feed);
     void startServerBlocking();
 
 private:
@@ -36,7 +36,6 @@ private:
 
     Feed *feed;
     ICamera *camera;
-    Leds *leds;
 
     int leftEyeListeners = 0;
     int rightEyeListeners = 0;

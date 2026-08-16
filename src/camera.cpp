@@ -40,7 +40,7 @@ Camera::Camera(Feed *f)
     feed = f;
 }
 
-bool Camera::open()
+bool Camera::openCamera()
 {
     // This is done to prevent race conditions.
     if (this->opening.exchange(true))
@@ -116,7 +116,7 @@ void Camera::onDisconnected(ACameraDevice *device)
     this->isOpened.store(false);
 }
 
-bool Camera::close()
+bool Camera::closeCamera()
 {
     if (this->captureSession != nullptr)
     {

@@ -7,12 +7,12 @@ public:
      * Opens this camera.
      * @returns If the camera opened succesfully.
      */
-    virtual bool open() = 0;
+    virtual bool openCamera() = 0;
     /**
      * Closes and cleans up this camera.
      * @returns If the camera has closed succesfully.
      */
-    virtual bool close() = 0;
+    virtual bool closeCamera() = 0;
 
     /**
      * @returns If the camera is currently open.

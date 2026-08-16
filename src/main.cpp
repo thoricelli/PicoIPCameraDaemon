@@ -1,13 +1,7 @@
-#include <iostream>
-#include <chrono>
-#include <thread>
-#include <android/log.h>
-#include <unistd.h>
-#include <sys/resource.h>
-
-#include "libbinder-ndk.hpp"
 #include "mjpeg-server.hpp"
 #include "camera-shared-memory.hpp"
+
+#include <binder/ProcessState.h>
 
 #define IS_A_DAEMON 0
 
@@ -40,20 +34,12 @@ int main()
         return EXIT_SUCCESS;
     }
 #endif
-    // Start a thread pool for listening to events, important!
-    LibBinderNdk::ABinderProcess_startThreadPool();
+    android::ProcessState::self()->startThreadPool();
 
-    /*MJPEGServer *server = new MJPEGServer();
-    server->startServerBlocking();*/
+    Feed *feed = new Feed();
 
-    ICamera *cameraSharedMemory = new CameraSharedMemory(new Feed());
-    cameraSharedMemory->open();
-
-    while (true)
-    {
-        fflush(stdout);
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-    }
+    MJPEGServer *server = new MJPEGServer(new CameraSharedMemory(feed), feed);
+    server->startServerBlocking();
 
     return EXIT_SUCCESS;
 }

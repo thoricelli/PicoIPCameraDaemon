@@ -7,14 +7,12 @@
 
 #include "mjpeg-server.hpp"
 #include "log.hpp"
-#include "camera.hpp"
 #include "leds.hpp"
 
-MJPEGServer::MJPEGServer()
+MJPEGServer::MJPEGServer(ICamera *camera, Feed *feed)
 {
-    this->feed = new Feed();
-    this->camera = new Camera(feed);
-    this->leds = new Leds();
+    this->feed = feed;
+    this->camera = camera;
 }
 
 bool MJPEGServer::writeToSink(httplib::DataSink &sink, FrameBuffer jpeg)
@@ -134,14 +132,7 @@ void MJPEGServer::ensureCameraOpen()
     if (this->camera->isOpen())
         return;
 
-    LedSettings ledSettings = {
-        .leftEyeBrightness = 0x10,
-        .rightEyeBrightness = 0x10,
-        .faceBrightness = 0x40,
-    };
-
-    if (this->camera->open())
-        this->leds->turnOn(&ledSettings);
+    this->camera->openCamera();
 }
 
 void MJPEGServer::checkCameraShouldStayOpen()
@@ -161,7 +152,7 @@ void MJPEGServer::closeTimerLoop()
             if (std::chrono::steady_clock::now() >= this->triggerStart)
             {
                 this->timerActive = false;
-                this->camera->close();
+                this->camera->closeCamera();
             }
         }
 

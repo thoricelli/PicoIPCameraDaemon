@@ -13,8 +13,8 @@ class Camera : public ICamera
 {
 public:
     Camera(Feed *feed);
-    bool open();
-    bool close();
+    bool openCamera();
+    bool closeCamera();
     bool isOpen();
 
     void setISO(int ISO);

@@ -1,27 +1,62 @@
+#include <sys/stat.h>
+#include <unistd.h>
+
 #include "camera-shared-memory.hpp"
-#include "pico/eye-tracking-service.hpp"
+#include "pvr/pxr-eye-tracking-service.hpp"
 
 CameraSharedMemory::CameraSharedMemory(Feed *feed)
 {
     this->feed = feed;
 }
 
-bool CameraSharedMemory::open()
+bool CameraSharedMemory::openCamera()
 {
-    int fd = -2;
-    int status = EyeTrackingService::GetCameraFrameSharedMemory(5, &fd);
+    void *cameraBuffer = nullptr;
 
-    printf("Got status: %d, got fd: %d", status, fd);
+    status_t algorithmStatus = PxrEyeTrackingService::StartAlgorithm(5, EYE_TRACKING_ON | FACE_TRACKING_ON, 1000);
+
+    if (algorithmStatus != OK)
+        return false;
+
+    status_t sharedMemoryStatus = PxrEyeTrackingService::GetCameraFrameSharedMemory(5, &cameraBuffer);
+
+    if (sharedMemoryStatus != OK)
+        return false;
+
+    // Spin up a new thread that will start sending data, and dies after it receives a signal.
+    this->dataBuffer = new DataBuffer(cameraBuffer);
+    this->cameraOpen.store(true);
+
+    this->worker = std::thread(&CameraSharedMemory::PollSharedMemory, this);
 
     return true;
 }
 
-bool CameraSharedMemory::close()
+bool CameraSharedMemory::closeCamera()
 {
-    return true;
+    this->cameraOpen = false;
+
+    if (this->worker.joinable())
+        this->worker.join();
+
+    return PxrEyeTrackingService::StopAlgorithm(5, EYE_TRACKING_ON | FACE_TRACKING_ON) == OK;
 }
 
 bool CameraSharedMemory::isOpen()
 {
-    return true;
+    return this->cameraOpen;
+}
+
+void CameraSharedMemory::PollSharedMemory()
+{
+    while (this->cameraOpen.load())
+    {
+        unsigned char *cameraFrame = static_cast<unsigned char *>(this->dataBuffer->GetLatest());
+        cameraFrame += 151; // 151 bytes are data, which I have yet to figure out what it is.
+
+        if (cameraFrame != nullptr)
+            this->feed->pushImageData(cameraFrame);
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
+    }
 }

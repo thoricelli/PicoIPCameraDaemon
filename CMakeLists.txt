@@ -69,19 +69,77 @@ set(SOURCES
     src/main.cpp
     src/leds.cpp
     src/camera.cpp
-    src/libbinder-ndk.cpp
     src/mjpeg-server.cpp
     src/feed.cpp
     src/camera-shared-memory.cpp
-    src/pico/eye-tracking-service.cpp
+    src/pvr/pxr-eye-tracking-service.cpp
+    src/data-buffer.cpp
 )
+
+#PICO Android OS libs
+add_library(binder SHARED IMPORTED)
+set_target_properties(binder PROPERTIES
+    IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib/${ANDROID_ABI}/libbinder.so
+)
+
+add_library(utils SHARED IMPORTED)
+set_target_properties(utils PROPERTIES
+    IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib/${ANDROID_ABI}/libutils.so
+)
+
+add_library(cutils SHARED IMPORTED)
+set_target_properties(cutils PROPERTIES
+    IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib/${ANDROID_ABI}/libcutils.so
+)
+
+add_library(base SHARED IMPORTED)
+set_target_properties(base PROPERTIES
+    IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib/${ANDROID_ABI}/libbase.so
+)
+
+add_library(binder_ndk_real SHARED IMPORTED)
+set_target_properties(binder_ndk_real PROPERTIES
+    IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib/${ANDROID_ABI}/libbinder_ndk.so
+)
+
 
 add_executable(picoipcamerad ${SOURCES})
 
 target_embed_files(picoipcamerad FILES ${CMAKE_CURRENT_SOURCE_DIR}/html/index.html)
 
-target_compile_options(picoipcamerad PUBLIC -Og -ffunction-sections -fdata-sections)
-target_link_options(picoipcamerad PUBLIC 
+target_compile_options(picoipcamerad PRIVATE 
+    -fno-rtti
+    -fno-exceptions
+
+    # Debug Configuration (No optimization, maximum debuggability)
+    $<$<CONFIG:Debug>:
+        -O0
+        -g3
+        -fno-omit-frame-pointer
+    >
+
+    # Release Configuration (Maximum optimization)
+    $<$<CONFIG:Release>:
+        -O3
+        -flto
+        -ffunction-sections
+        -fdata-sections
+        -fvisibility=hidden
+    >
+)
+
+target_compile_definitions(picoipcamerad PRIVATE
+    $<$<CONFIG:Release>:NDEBUG>
+)
+
+target_link_options(picoipcamerad PRIVATE
+    -Wl,--allow-shlib-undefined
+
+    $<$<CONFIG:Release>:
+        -flto
+        -Wl,--gc-sections
+        -Wl,-s
+    >
 )
 
 target_include_directories(picoipcamerad PUBLIC 
@@ -91,11 +149,24 @@ target_include_directories(picoipcamerad PUBLIC
     third_party/cpp-httplib
     third_party/json/single_include/
 )
+target_include_directories(picoipcamerad PRIVATE
+    third_party/native/libs/binder/include
+    third_party/native/libs/binder/ndk/include_apex
+    third_party/core/libutils/include
+    third_party/core/liblog/include
+    third_party/core/base/include
+    third_party/core/libcutils/include
+    third_party/core/libsystem/include
+)
 target_link_libraries(picoipcamerad 
     camera2ndk
     mediandk 
     -landroid 
-    binder_ndk
+    binder
+    utils
+    cutils
+    base
+    binder_ndk_real
     log
     libturbojpeg
     httplib::httplib
