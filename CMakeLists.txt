@@ -105,7 +105,7 @@ set_target_properties(binder_ndk_real PROPERTIES
 
 add_executable(picoipcamerad ${SOURCES})
 
-target_embed_files(picoipcamerad FILES ${CMAKE_CURRENT_SOURCE_DIR}/html/index.html)
+target_embed_files(picoipcamerad FILES ${CMAKE_CURRENT_SOURCE_DIR}/html/index.html ${CMAKE_CURRENT_SOURCE_DIR}/html/style.css ${CMAKE_CURRENT_SOURCE_DIR}/html/dist/script.js)
 
 target_compile_options(picoipcamerad PRIVATE 
     -fno-rtti

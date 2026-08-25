@@ -43,6 +43,12 @@ void MJPEGServer::startServerBlocking()
     svr.Get("/", [this](const httplib::Request &req, httplib::Response &res)
             { res.set_content(reinterpret_cast<const char *>(index), sizeof(index), "text/html"); });
 
+    svr.Get("/style.css", [this](const httplib::Request &req, httplib::Response &res)
+            { res.set_content(reinterpret_cast<const char *>(style), sizeof(style), "text/css"); });
+
+    svr.Get("/script.js", [this](const httplib::Request &req, httplib::Response &res)
+            { res.set_content(reinterpret_cast<const char *>(script), sizeof(script), "text/javascript"); });
+
     svr.Get("/left", [this](const httplib::Request &req, httplib::Response &res)
             { this->leftEyeEndpoint(req, res); });
 
