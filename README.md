@@ -3,11 +3,6 @@
 A daemon that exposes the eye tracking and face tracking camera on the Pico 4 Pro and Enterprise.  
 Note: requires a rooted device!
 
-## Limitations
-This daemon talks to the camera via the normal Android CameraService, and with Android 10 enforcing a strict one-camera-per-application with no way to make the camera shared, the `pxreyeservice` (the service responsible for parsing camera data normally) will not work whilst the daemon is active.
-
-If you still want `pxreyeservice` to work, you will have to use another workaround like Toonlink's `eyed` daemon which can be found in the OwoMushi Discord server.
-
 ## Running
 
 1. Download the binary `picoipcamerad` in the releases.
@@ -39,7 +34,8 @@ https://developer.android.com/ndk/downloads
 git submodule init
 git submodule update --recursive --remote
 ```
-4. Run `make`.
+4. Install `make`, `cmake` and `ninja`
+5. Run `make`.
 
 ## TODO
 More features to come.

@@ -40,8 +40,13 @@ Camera::Camera(Feed *f)
     feed = f;
 }
 
-void Camera::open()
+bool Camera::openCamera()
 {
+    if (this->isOpened.load())
+    {
+        return false;
+    }
+
     ACameraManager *cameraManager = ACameraManager_create();
 
     this->cameraStateCallbacks = {
@@ -72,8 +77,7 @@ void Camera::open()
 
     camera_status_t captureStatus = ACameraDevice_createCaptureRequest(this->activeCamera, TEMPLATE_RECORD, &this->captureRequest);
 
-    int32_t sensitivity = 300;
-    ACaptureRequest_setEntry_i32(this->captureRequest, ACAMERA_SENSOR_SENSITIVITY, 1, &sensitivity);
+    this->setISO(100);
 
     ACameraOutputTarget *imageReaderTarget;
     ACameraOutputTarget_create(nativeWindow, &imageReaderTarget);
@@ -89,16 +93,55 @@ void Camera::open()
 
     camera_status_t reqStatus = ACameraCaptureSession_setRepeatingRequest(this->captureSession, nullptr, 1, &this->captureRequest, nullptr);
 
-    this->isOpened = true;
+    this->isOpened.store(true);
+
+    return true;
+}
+
+void Camera::setISO(int ISO)
+{
+    ACaptureRequest_setEntry_i32(this->captureRequest, ACAMERA_SENSOR_SENSITIVITY, 1, &ISO);
 }
 
 void Camera::onDisconnected(ACameraDevice *device)
 {
-    this->isOpened = false;
+    this->isOpened.store(false);
 }
 
-void Camera::close()
+bool Camera::closeCamera()
 {
-    ACameraDevice_close(this->activeCamera);
-    this->isOpened = false;
+    if (this->captureSession != nullptr)
+    {
+        ACameraCaptureSession_stopRepeating(this->captureSession);
+        ACameraCaptureSession_close(this->captureSession);
+        this->captureSession = nullptr;
+    }
+
+    if (this->activeCamera != nullptr)
+    {
+        ACameraDevice_close(this->activeCamera);
+        this->activeCamera = nullptr;
+    }
+
+    if (this->captureRequest != nullptr)
+    {
+        ACaptureRequest_free(this->captureRequest);
+        this->captureRequest = nullptr;
+    }
+
+    if (this->imageReader != nullptr)
+    {
+        AImageReader_setImageListener(this->imageReader, nullptr);
+        AImageReader_delete(this->imageReader);
+        this->imageReader = nullptr;
+    }
+
+    this->isOpened.store(false);
+
+    return true;
+}
+
+bool Camera::isOpen()
+{
+    return this->isOpened.load();
 }

@@ -2,16 +2,17 @@
 #include <string>
 #include "httplib.h"
 
+// Assets
+#include <embed/picoipcamerad.h>
+
 #include "mjpeg-server.hpp"
 #include "log.hpp"
-#include "camera.hpp"
 #include "leds.hpp"
 
-MJPEGServer::MJPEGServer()
+MJPEGServer::MJPEGServer(ICamera *camera, Feed *feed)
 {
-    this->feed = new Feed();
-    this->camera = new Camera(feed);
-    this->leds = new Leds();
+    this->feed = feed;
+    this->camera = camera;
 }
 
 bool MJPEGServer::writeToSink(httplib::DataSink &sink, FrameBuffer jpeg)
@@ -39,96 +40,112 @@ void MJPEGServer::startServerBlocking()
     this->timerThread = std::thread([this]()
                                     { this->closeTimerLoop(); });
 
-    // Ignore the indentations here for now, I don't know why my formatter is doing this. I'll fix it later.
+    svr.Get("/", [this](const httplib::Request &req, httplib::Response &res)
+            { res.set_content(reinterpret_cast<const char *>(index), sizeof(index), "text/html"); });
+
+    svr.Get("/style.css", [this](const httplib::Request &req, httplib::Response &res)
+            { res.set_content(reinterpret_cast<const char *>(style), sizeof(style), "text/css"); });
+
+    svr.Get("/script.js", [this](const httplib::Request &req, httplib::Response &res)
+            { res.set_content(reinterpret_cast<const char *>(script), sizeof(script), "text/javascript"); });
 
     svr.Get("/left", [this](const httplib::Request &req, httplib::Response &res)
-            { 
-                this->ensureCameraOpen();
-                this->feed->setLeftEyeBufferState(true);
-                this->leftEyeListeners++;
-
-                res.set_content_provider("multipart/x-mixed-replace; boundary=frame", [this](size_t offset, httplib::DataSink &sink) -> bool
-                {
-                    static thread_local unsigned long lastFrame = 0;
-
-                    FrameBuffer jpeg = this->feed->waitForLeftEyeBuffer(&lastFrame);
-                    if (jpeg->empty()) return false;
-
-                    return writeToSink(sink, jpeg); 
-                }, [this](bool success) { 
-                    this->leftEyeListeners--; 
-
-                    if (leftEyeListeners <= 0)
-                        this->feed->setLeftEyeBufferState(false);
-
-                    this->checkCameraShouldStayOpen();
-                }); });
+            { this->leftEyeEndpoint(req, res); });
 
     svr.Get("/right", [this](const httplib::Request &req, httplib::Response &res)
-            { 
-                this->ensureCameraOpen();
-                this->feed->setRightEyeBufferState(true);
-                this->rightEyeListeners++;
-
-                res.set_content_provider("multipart/x-mixed-replace; boundary=frame", [this](size_t offset, httplib::DataSink &sink) -> bool
-                {
-                    static thread_local unsigned long lastFrame = 0;
-
-                    FrameBuffer jpeg = this->feed->waitForRightEyeBuffer(&lastFrame);
-                    if (jpeg->empty()) return false;
-
-                    return writeToSink(sink, jpeg); 
-                }, [this](bool success) { 
-                    this->rightEyeListeners--; 
-
-                    if (rightEyeListeners <= 0)
-                        this->feed->setRightEyeBufferState(false);
-
-                    this->checkCameraShouldStayOpen();
-                }); });
+            { this->rightEyeEndpoint(req, res); });
 
     svr.Get("/face", [this](const httplib::Request &req, httplib::Response &res)
-            { 
-                this->ensureCameraOpen();
-                this->feed->setFaceBufferState(true);
-                this->faceListeners++;
+            { this->faceEndpoint(req, res); });
 
-                res.set_content_provider("multipart/x-mixed-replace; boundary=frame", [this](size_t offset, httplib::DataSink &sink) -> bool
-                {
+    svr.listen("0.0.0.0", 9100);
+}
+
+void MJPEGServer::leftEyeEndpoint(const httplib::Request &req, httplib::Response &res)
+{
+    this->ensureCameraOpen();
+    this->feed->setLeftEyeBufferState(true);
+    this->leftEyeListeners++;
+
+    res.set_content_provider("multipart/x-mixed-replace; boundary=frame", [this](size_t offset, httplib::DataSink &sink) -> bool
+                             {
+        static thread_local unsigned long lastFrame = 0;
+
+        FrameBuffer jpeg = this->feed->waitForLeftEyeBuffer(&lastFrame);
+        if (jpeg->empty()) return false;
+
+        return writeToSink(sink, jpeg); }, [this](bool success)
+                             { 
+        this->leftEyeListeners--; 
+
+        if (leftEyeListeners <= 0)
+            this->feed->setLeftEyeBufferState(false);
+
+        this->checkCameraShouldStayOpen(); });
+}
+
+void MJPEGServer::rightEyeEndpoint(const httplib::Request &req, httplib::Response &res)
+{
+    this->ensureCameraOpen();
+    this->feed->setRightEyeBufferState(true);
+    this->rightEyeListeners++;
+
+    res.set_content_provider("multipart/x-mixed-replace; boundary=frame", [this](size_t offset, httplib::DataSink &sink) -> bool
+                             {
+    static thread_local unsigned long lastFrame = 0;
+
+    FrameBuffer jpeg = this->feed->waitForRightEyeBuffer(&lastFrame);
+    if (jpeg->empty()) return false;
+
+    return writeToSink(sink, jpeg); }, [this](bool success)
+                             { 
+    this->rightEyeListeners--; 
+
+    if (rightEyeListeners <= 0)
+        this->feed->setRightEyeBufferState(false);
+
+    this->checkCameraShouldStayOpen(); });
+}
+
+void MJPEGServer::faceEndpoint(const httplib::Request &req, httplib::Response &res)
+{
+
+    this->ensureCameraOpen();
+    this->feed->setFaceBufferState(true);
+    this->faceListeners++;
+
+    res.set_content_provider("multipart/x-mixed-replace; boundary=frame", [this](size_t offset, httplib::DataSink &sink) -> bool
+                             {
                     static thread_local unsigned long lastFrame = 0;
 
                     FrameBuffer jpeg = this->feed->waitForFaceBuffer(&lastFrame);
                     if (jpeg->empty()) return false;
 
-                    return writeToSink(sink, jpeg); 
-                }, [this](bool success) { 
+                    return writeToSink(sink, jpeg); }, [this](bool success)
+                             { 
                     this->faceListeners--;
 
                     if (faceListeners <= 0)
                         this->feed->setFaceBufferState(false);
 
-                    this->checkCameraShouldStayOpen();
-                }); });
-
-    svr.listen("0.0.0.0", 9100);
+                    this->checkCameraShouldStayOpen(); });
 }
 
 void MJPEGServer::ensureCameraOpen()
 {
+    if (this->isOpening.exchange(true))
+    {
+        return;
+    }
+
     this->cancelCameraCloseTimer();
 
-    if (this->camera->isOpened)
+    if (this->camera->isOpen())
         return;
 
-    led_settings ledSettings = {
-        .leftEyeBrightness = 0x10,
-        .rightEyeBrightness = 0x10,
-        .faceBrightness = 0x40,
-    };
+    this->camera->openCamera();
 
-    this->camera->open();
-
-    this->leds->turnOn(&ledSettings);
+    this->isOpening.store(false);
 }
 
 void MJPEGServer::checkCameraShouldStayOpen()
@@ -148,7 +165,8 @@ void MJPEGServer::closeTimerLoop()
             if (std::chrono::steady_clock::now() >= this->triggerStart)
             {
                 this->timerActive = false;
-                this->camera->close();
+                this->isOpening.store(false);
+                this->camera->closeCamera();
             }
         }
 

@@ -41,28 +41,40 @@
 #define R_EYE_LED_ID 1
 #define L_EYE_LED_ID 2
 
-struct led_settings
+// Maximum levels
+#define MAXIMUM_EYE_BRIGHTNESS 0x10
+#define MAXIMUM_FACE_BRIGHTNESS 0x40
+
+enum LedIndex
+{
+    LED_LEFT_EYE,
+    LED_RIGHT_EYE,
+    LED_FACE
+};
+
+struct LedSettings
 {
     /**
-     * Sets the current of the face LED's in mA
+     * Sets the current of the left eye LED's in mA
      */
-    char faceBrightness;
+    char leftEyeBrightness;
     /**
      * Sets the current of the right eye LED's in mA
      */
     char rightEyeBrightness;
     /**
-     * Sets the current of the left eye LED's in mA
+     * Sets the current of the face LED's in mA
      */
-    char leftEyeBrightness;
+    char faceBrightness;
 };
 
 class Leds
 {
 public:
-    int turnOn(led_settings *settings);
-    // TODO custom scale / brightness SET for face and eyes.
+    int turnOn(LedSettings *settings);
     int turnOff();
+
+    void setLedBrightness(LedIndex ledIndex, unsigned int brightness);
 
 private:
     FILE *regFd;

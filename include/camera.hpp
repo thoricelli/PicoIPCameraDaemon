@@ -7,15 +7,17 @@
 #include <media/NdkImageReader.h>
 
 #include "feed.hpp"
+#include "interfaces/ICamera.hpp"
 
-class Camera
+class Camera : public ICamera
 {
 public:
     Camera(Feed *feed);
-    void open();
-    void close();
+    bool openCamera();
+    bool closeCamera();
+    bool isOpen();
 
-    bool isOpened = false;
+    void setISO(int ISO);
 
 private:
     ACameraDevice *activeCamera = nullptr;
@@ -29,6 +31,9 @@ private:
     // Callbacks
     ACameraDevice_StateCallbacks cameraStateCallbacks;
     ACameraCaptureSession_stateCallbacks sessionStateCallbacks;
+
+    std::atomic<bool> opening{false};
+    std::atomic<bool> isOpened{false};
 
     void onDisconnected(ACameraDevice *device);
 };
