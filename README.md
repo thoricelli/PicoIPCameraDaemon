@@ -5,6 +5,7 @@ Note: requires a rooted device!
 
 ## Running
 
+### Standalone
 1. Download the binary `picoipcamerad` in the releases.
 2. Then run the following commands
 ```shell
@@ -18,6 +19,10 @@ adb shell ./data/local/tmp/picoipcamerad
 5. Go to: http://192.168.0.xx:9100/face
 6. What a beatiful face!
 7. To kill the daemon: `pkill -f picoipcamerad`
+
+### Magisk
+
+You can install the ZIP file from the releases tab.
 
 All endpoints:
 - http://192.168.0.xx:9100/face
