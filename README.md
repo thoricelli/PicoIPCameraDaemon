@@ -10,19 +10,24 @@ Note: requires a rooted device!
 2. Then run the following commands
 ```shell
 adb push picoipcamerad /data/local/tmp
-adb shell ip addr show wlan0 | grep "inet "
 adb shell ./data/local/tmp/picoipcamerad
 ```
 3. The daemon will now be running on port 9100.
-4. You should see, in the previous output the following:  
-`inet 192.168.0.xx/24 brd 192.168.0.255 scope global wlan0`
-5. Go to: http://192.168.0.xx:9100/face
-6. What a beatiful face!
-7. To kill the daemon: `pkill -f picoipcamerad`
+4. To kill the daemon: `pkill -f picoipcamerad`
 
 ### Magisk
 
 You can install the ZIP file from the releases tab.
+
+## Endpoints
+1. To see the IP of your device:
+```shell
+adb shell ip addr show wlan0 | grep "inet "
+```
+2. You should see, in the previous output the following:  
+`inet 192.168.0.xx/24 brd 192.168.0.255 scope global wlan0`
+3. Go to: http://192.168.0.xx:9100/face
+4. What a beatiful face!
 
 All endpoints:
 - http://192.168.0.xx:9100/face
