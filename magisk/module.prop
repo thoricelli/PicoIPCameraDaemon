@@ -4,3 +4,4 @@ version=1.0.0
 versionCode=1
 author=thoricelli
 description=A daemon that talks to the CameraServer to expose the ET/FT camera's on an MJPEG server.
+updateJson=https://raw.githubusercontent.com/thoricelli/PicoIPCameraDaemon/refs/heads/main/update.json

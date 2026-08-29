@@ -143,9 +143,8 @@ void MJPEGServer::ensureCameraOpen()
     if (this->camera->isOpen())
         return;
 
-    this->camera->openCamera();
-
-    this->isOpening.store(false);
+    // Start a seperate thread that will poll opening the camera, whilst it is needed.
+    this->openCameraThread = std::thread(&MJPEGServer::openCameraLoop, this);
 }
 
 void MJPEGServer::checkCameraShouldStayOpen()
@@ -154,6 +153,38 @@ void MJPEGServer::checkCameraShouldStayOpen()
         return;
 
     this->startCameraCloseTimer();
+}
+
+void MJPEGServer::stopCameraOpen()
+{
+    this->isOpening.store(false);
+    std::lock_guard<std::mutex> lock(this->waitCameraOpenMtx);
+    this->waitCameraOpen = false;
+    this->waitCameraOpenCv.notify_all();
+
+    if (this->openCameraThread.joinable())
+        this->openCameraThread.join();
+}
+
+void MJPEGServer::openCameraLoop()
+{
+    this->waitCameraOpen = true;
+
+    while (this->waitCameraOpen)
+    {
+        bool success = this->camera->openCamera();
+
+        if (success)
+        {
+            this->isOpening.store(false);
+            return;
+        }
+
+        std::unique_lock<std::mutex> lock(this->waitCameraOpenMtx);
+
+        this->waitCameraOpenCv.wait_for(lock, std::chrono::seconds(1), [this]
+                                        { return !this->waitCameraOpen; });
+    }
 }
 
 void MJPEGServer::closeTimerLoop()
@@ -165,7 +196,7 @@ void MJPEGServer::closeTimerLoop()
             if (std::chrono::steady_clock::now() >= this->triggerStart)
             {
                 this->timerActive = false;
-                this->isOpening.store(false);
+                this->stopCameraOpen();
                 this->camera->closeCamera();
             }
         }

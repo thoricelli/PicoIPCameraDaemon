@@ -1,0 +1,6 @@
+{
+  "version": "v0.2",
+  "versionCode": 2,
+  "zipUrl": "https://github.com/thoricelli/PicoIPCameraDaemon/releases/download/v0.2-beta/picoipcamerad-magisk-module.zip",
+  "changelog": "https://raw.githubusercontent.com/thoricelli/PicoIPCameraDaemon/refs/heads/main/changelog.md"
+}

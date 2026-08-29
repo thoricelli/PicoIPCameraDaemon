@@ -25,6 +25,8 @@ private:
 
     // TODO seperate this into its own class
     void closeTimerLoop();
+    void openCameraLoop();
+    void stopCameraOpen();
 
     void startCameraCloseTimer();
     void cancelCameraCloseTimer();
@@ -33,10 +35,16 @@ private:
     std::chrono::steady_clock::time_point triggerStart;
 
     std::thread timerThread;
+    std::thread openCameraThread;
 
     Feed *feed;
     ICamera *camera;
+
     std::atomic<bool> isOpening{false};
+
+    std::mutex waitCameraOpenMtx;
+    std::condition_variable waitCameraOpenCv;
+    bool waitCameraOpen{false};
 
     int leftEyeListeners = 0;
     int rightEyeListeners = 0;

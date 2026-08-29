@@ -1,0 +1,1 @@
+- The daemon now waits for the device to be awake when opening the camera.
