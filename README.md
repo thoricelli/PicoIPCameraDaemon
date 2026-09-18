@@ -4,7 +4,7 @@ A daemon that exposes the eye tracking and face tracking camera on the Pico 4 Pr
 Note: requires a rooted device!
 
 ## Running
-> !note
+> [!NOTE]
 > You run this either via Magisk or standalone, not both!
 
 ### Magisk
