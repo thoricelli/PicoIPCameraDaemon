@@ -4,6 +4,12 @@ A daemon that exposes the eye tracking and face tracking camera on the Pico 4 Pr
 Note: requires a rooted device!
 
 ## Running
+> !note
+> You run this either via Magisk or standalone, not both!
+
+### Magisk
+
+You can install the ZIP file from the releases tab.
 
 ### Standalone
 1. Download the binary `picoipcamerad` in the releases.
@@ -14,10 +20,6 @@ adb shell ./data/local/tmp/picoipcamerad
 ```
 3. The daemon will now be running on port 9100.
 4. To kill the daemon: `pkill -f picoipcamerad`
-
-### Magisk
-
-You can install the ZIP file from the releases tab.
 
 ## Endpoints
 1. To see the IP of your device:
